@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import BottomNav from '@/components/BottomNav';
+import WKWebViewScrollFix from '@/components/WKWebViewScrollFix';
 
 import './globals.css';
 
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <BottomNav />
+        <WKWebViewScrollFix />
       </body>
     </html>
   );
