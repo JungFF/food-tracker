@@ -1,6 +1,4 @@
-'use client';
-
-import { type ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
 
 interface CollapsibleSectionProps {
   title: string;
@@ -15,35 +13,21 @@ export default function CollapsibleSection({
   children,
   defaultOpen = false,
 }: CollapsibleSectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
   return (
-    <div className="rounded-xl border border-border bg-white/80 overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
-        className="flex w-full items-center justify-between px-4 text-left text-text min-h-[44px] cursor-pointer"
-      >
+    <details
+      open={defaultOpen || undefined}
+      className="group rounded-xl border border-border bg-white/80"
+    >
+      <summary className="flex cursor-pointer items-center justify-between px-4 text-left text-text min-h-[44px] list-none [&::-webkit-details-marker]:hidden">
         <span className="font-semibold text-base">
           {icon && <span className="mr-1.5">{icon}</span>}
           {title}
         </span>
-        <span
-          className="text-text-muted transition-transform duration-300"
-          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-        >
+        <span className="text-text-muted transition-transform duration-300 group-open:rotate-180">
           ▾
         </span>
-      </button>
-      <div
-        className="grid transition-[grid-template-rows] duration-300 ease-in-out"
-        style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
-      >
-        <div className="overflow-hidden">
-          <div className="px-4 pb-4">{children}</div>
-        </div>
-      </div>
-    </div>
+      </summary>
+      <div className="px-4 pb-4">{children}</div>
+    </details>
   );
 }
