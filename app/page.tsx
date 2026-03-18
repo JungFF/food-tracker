@@ -1,8 +1,22 @@
-export default function Home() {
+import DayContent from '@/components/DayContent';
+import HomepageClient from '@/components/HomepageClient';
+import { getMealPlan } from '@/lib/data';
+
+export default function HomePage() {
+  const mealPlan = getMealPlan();
   return (
-    <main className="flex flex-1 flex-col items-center justify-center p-8">
-      <h1 className="text-3xl font-bold">Food Tracker</h1>
-      <p className="mt-4 text-zinc-600 dark:text-zinc-400">Track your daily meals and nutrition.</p>
+    <main className="mx-auto max-w-[960px] px-4 pb-20">
+      <HomepageClient weekPlan={mealPlan.weekPlan} />
+      {mealPlan.weekPlan.map((day) => (
+        <DayContent
+          key={day.day}
+          dayPlan={day}
+          recipe={mealPlan.recipes.find((r) => r.day === day.day)}
+          breakfast={mealPlan.fixedBreakfast}
+          mealPrepTips={mealPlan.mealPrepTips}
+          executionReminders={mealPlan.executionReminders}
+        />
+      ))}
     </main>
   );
 }
