@@ -96,7 +96,7 @@ export default function DayNavigation({ weekPlan }: DayNavigationProps) {
         <button
           type="button"
           onClick={goPrev}
-          className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-text-secondary transition-colors hover:bg-white/60"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-xl text-text-secondary transition-colors hover:bg-white/60"
           aria-label="前一天"
         >
           ‹
@@ -111,7 +111,7 @@ export default function DayNavigation({ weekPlan }: DayNavigationProps) {
           <button
             type="button"
             onClick={goToday}
-            className="text-xs text-text-muted transition-colors hover:text-primary"
+            className="min-h-[44px] flex items-center text-xs text-text-muted transition-colors hover:text-primary"
             title="跳回今天"
           >
             {getCalendarDate(currentDay)}
@@ -123,7 +123,7 @@ export default function DayNavigation({ weekPlan }: DayNavigationProps) {
         <button
           type="button"
           onClick={goNext}
-          className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-text-secondary transition-colors hover:bg-white/60"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-xl text-text-secondary transition-colors hover:bg-white/60"
           aria-label="后一天"
         >
           ›

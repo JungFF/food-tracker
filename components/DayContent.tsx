@@ -67,10 +67,13 @@ export default function DayContent({
         </div>
       </CollapsibleSection>
 
-      {/* Breakfast */}
-      <CollapsibleSection title="早餐" icon="🥣" defaultOpen>
+      {/* Breakfast — smoothie always visible, details collapsible */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+          🥤 早餐奶昔（两人平分）
+        </h3>
         <BreakfastSection breakfast={breakfast} />
-      </CollapsibleSection>
+      </div>
     </div>
   );
 }
