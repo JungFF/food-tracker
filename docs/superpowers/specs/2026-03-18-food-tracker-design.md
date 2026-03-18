@@ -19,6 +19,20 @@
 - **部署**: Vercel（免费、自动 HTTPS、push 即部署）
 - **数据源**: Markdown 文件，构建时解析为 JSON
 - **状态存储**: localStorage（采购清单勾选状态）
+- **校验**: zod（构建时校验 Markdown 解析结果）
+
+### 客户端渲染策略
+
+首页的"今天是 Day 几"依赖当前日期，无法在构建时确定。采用以下策略：
+- 首页和采购清单页均为客户端组件（`'use client'`）
+- 挂载前显示 skeleton 占位，避免首屏闪烁
+- 日期计算、localStorage 读取均在 `useEffect` 中完成
+- 数据本身是静态的（构建时从 Markdown 解析），只有"今天是哪天"和"勾选状态"是客户端状态
+
+### Phase 1 vs Phase 2 边界
+
+- **Phase 1（当前）**: 纯静态站，`output: 'export'`，数据硬编码在构建产物中，无后端
+- **Phase 2（未来编辑功能）**: 需切换到 SSR/Serverless 部署模式，加 API routes + 数据库。为降低迁移成本，Phase 1 的页面通过统一的 `getData()` 函数访问数据，不直接 import 解析后的 JSON
 
 ## 代码质量
 
@@ -26,20 +40,28 @@
   - `eslint` — 代码风格检查
   - `tsc --noEmit` — 类型检查
 - **ESLint**: 启用 `@typescript-eslint/no-explicit-any`（error 级别），禁止使用 `any`
+- **Prettier**: 代码格式化，集成到 lint-staged
+- **Import 规则**: eslint-plugin-import 排序和 unused imports 检查
 - 写第一行业务代码之前，先配好 hook 和 lint 规则
+
+### 测试策略
+
+- **parser 单元测试**: 验证 Markdown 解析结果符合 zod schema，覆盖正常和异常输入
+- **日期映射测试**: 验证 `getTodayDayNumber()` 和日期导航逻辑的边界情况（周日、跨周）
+- **采购清单状态测试**: 验证 localStorage 读写、重置、降级行为
+- **E2E smoke test**: 至少 1 条首页 + 1 条采购清单页的端到端测试（Playwright）
 
 ## 数据架构
 
 ### 数据源
 
-原始数据存放在 `data/meal-plan.md`，构建时由 `lib/parser.ts` 解析为结构化 JSON。
+原始数据存放在 `data/meal-plan.md`，构建时由 `lib/parser.ts` 解析为结构化 JSON，解析结果经 zod schema 校验。校验失败时构建报错并指出具体问题。
 
 ### 核心类型
 
 ```typescript
 interface MealPlan {
   fixedBreakfast: FixedBreakfast
-  templates: Templates
   weekPlan: DayPlan[]
   shoppingList: ShoppingList
   recipes: Recipe[]
@@ -59,31 +81,28 @@ interface Ingredient {
   unit: string
 }
 
+interface ProteinItem {
+  name: string                    // 如 "虾仁"、"牛腿肉"
+  amount: number                  // 克数
+  weightBasis: 'raw'              // 始终按生重称
+}
+
 interface PersonWeighing {
   rice: number                    // 糙米熟重 g（称熟饭重量）
-  protein: string                 // 主蛋白描述（如 "虾仁 310.9g"，称生重）
+  protein: ProteinItem            // 主蛋白（结构化，称生重）
   vegetable: number               // 蔬菜 g
   oil: number                     // 油 g
   powder: number                  // 蛋白粉 g
 }
 
-// 共 4 套模板，非对称分布：
-// - 虾仁日：你和老婆都用模板 A，但克数不同（按各自热量目标计算）
-// - 牛肉日：你用模板 B，老婆用模板 C（现实版，蛋白粉更少、牛肉更多）
-// - 不存在 B_wife 或 C_you
-interface Templates {
-  A_you: PersonWeighing           // 虾仁日 - 你（~2000kcal）
-  A_wife: PersonWeighing          // 虾仁日 - 老婆（~1000kcal）
-  B_you: PersonWeighing           // 牛肉日 - 你（~2000kcal）
-  C_wife: PersonWeighing          // 牛肉日 - 老婆（~1000kcal，现实版）
-}
-
+// DayPlan 直接内联两人的称重数据，模板复用留在解析层
+// 解析器负责根据 dayType 查找对应模板并填充
 interface DayPlan {
   day: number                     // 1-7
-  dayType: string                 // "虾仁日" | "牛肉日"
+  dayType: '虾仁日' | '牛肉日'
   menu: string                    // 如 "番茄虾仁 + 上海青 + 糙米"
-  youTemplate: string             // 模板 ID
-  wifeTemplate: string            // 模板 ID
+  you: PersonWeighing             // 你的称重数据
+  wife: PersonWeighing            // 老婆的称重数据
 }
 
 interface Recipe {
@@ -96,15 +115,18 @@ interface ShoppingList {
   breakfast: ShoppingItem[]
   staple: ShoppingItem[]          // 主食（糙米）
   protein: ShoppingItem[]
-  vegetable: ShoppingItem[]       // 按具体蔬菜逐项列出，非仅总量
+  vegetable: ShoppingItem[]       // 按具体蔬菜逐项列出
   oil: ShoppingItem[]             // 食用油（有具体克数）
-  condiment: ShoppingItem[]       // 调味料（生抽/盐/黑胡椒/蒜/姜，合并为一项）
+  pantry: ShoppingItem[]          // 家中常备调味料（生抽/盐/黑胡椒/蒜/姜）
 }
 
 interface ShoppingItem {
+  id: string                      // 稳定 ID（category:name hash），用于 localStorage
   name: string
-  amount: string                  // 如 "21 个"、"1658.4 g"、"适量"
-  note?: string                   // 如 "建议买 3L"
+  quantity: number | null          // 数量（null 表示"适量"）
+  unit: string | null              // 单位（null 表示无单位）
+  displayAmount: string            // 展示用字符串，如 "21 个"、"适量"
+  note?: string                    // 如 "建议买 3L"
 }
 ```
 
@@ -119,22 +141,35 @@ function getTodayDayNumber(): number {
 }
 ```
 
+### 数据访问层
+
+页面不直接 import 解析后的 JSON，而是通过统一的 `getData()` 函数获取数据：
+
+```typescript
+// lib/data.ts — Phase 1 直接读取静态数据，Phase 2 可改为 API 调用
+export function getMealPlan(): MealPlan { ... }
+export function getDayPlan(day: number): DayPlan { ... }
+export function getShoppingList(): ShoppingList { ... }
+```
+
 ## 页面设计
 
 ### 路由
 
 | 路径 | 页面 | 说明 |
 |------|------|------|
-| `/` | 每日概览 | 今日菜单 + 称重数据 |
+| `/` | 每日概览 | 默认显示今天，支持 `?day=N` 查询参数 |
 | `/shopping` | 采购清单 | 一周购物清单 + 勾选功能 |
 
 ### 首页 `/` — 每日概览
+
+URL 支持 `?day=N`（N=1-7）查询参数，默认为今天。这使得日期状态可分享、可刷新、可书签。
 
 从上到下的内容区块：
 
 1. **日期导航栏**
    - 居中显示：Day N · 周X + 具体日期
-   - 左右箭头切换日期
+   - 左右箭头切换日期（更新 URL 查询参数）
    - 日类型标签（虾仁日/牛肉日），带颜色标记
    - 点击日期文字可跳回今天
 
@@ -143,7 +178,7 @@ function getTodayDayNumber(): number {
 
 3. **称重清单**
    - 两人并排显示（桌面端），上下排列（手机端）
-   - 每人一张卡片，不同背景色区分（你=暖黄，老婆=粉色）
+   - 每人一张卡片，不同背景色区分（你=暖黄，老婆=粉色）+ 文字标签（不只靠颜色区分）
    - 每张卡片列出：糙米(熟重)、主蛋白(生重)、蔬菜、油、蛋白粉及对应克数
    - 糙米标注"熟重"，虾仁/牛腿肉标注"生重"（重要：避免称错）
    - 标注"午晚餐总量，各自分锅炒，平分两餐"
@@ -161,6 +196,7 @@ function getTodayDayNumber(): number {
 
 7. **底部导航栏**
    - 两个 tab：今日 / 采购清单
+   - 使用语义化 `<nav>` 元素
 
 ### 采购清单 `/shopping`
 
@@ -169,30 +205,45 @@ function getTodayDayNumber(): number {
 1. **顶部**
    - 标题"一周采购清单"
    - 进度显示"已买 X / 共 Y 项" + 进度条
-   - 重置按钮（清空所有勾选）
+   - 重置按钮（点击后弹出确认，再清空勾选）
 
 2. **分类列表**
-   - 按类别分组：早餐、主食、蛋白质、蔬菜、食用油、调味料
+   - 按类别分组：早餐、主食、蛋白质、蔬菜、食用油、家中常备
    - 蔬菜按具体品种逐项列出（油麦菜、上海青等），不只显示总量
    - 食用油单独一项（有具体克数 102.6g），与调味料分开
-   - 调味料（生抽/盐/黑胡椒/蒜/姜）合并为一项（都是"适量"）
+   - "家中常备"分组：调味料逐项列出（生抽/盐/黑胡椒/蒜/姜），语义上表示"检查库存"而非"精确采购"
    - 每项显示：勾选框 + 食材名 + 数量 + 备注（小字）
    - 勾选后：文字划线变灰
 
 3. **底部导航栏**（同首页）
 
+### UI 状态
+
+- **首页 skeleton**: 挂载前显示日期导航和卡片的占位骨架，避免空白闪烁
+- **采购清单 hydration**: 初始渲染所有项为未勾选，`useEffect` 后从 localStorage 恢复状态
+- **localStorage 不可用降级**: 功能正常但不持久化，刷新后重置（不报错）
+- **重置确认**: 点击重置按钮后弹出确认对话框，防止误操作
+
 ### 勾选状态持久化
 
 - 存储在 localStorage
-- key: `shopping-checklist`
-- value: 已勾选食材 name 的数组
+- key: `shopping-checklist:v1`
+- value: 已勾选食材 ID（ShoppingItem.id）的数组
 - 重置按钮清空该 key
-- 注意：采购清单组件需用 `'use client'` + `useEffect` 读取 localStorage，避免 SSG 水合不匹配
+- 使用稳定 ID 而非食材名，避免改版或重名导致状态错位
 
 ## 响应式设计
 
 - **移动端优先**（< 768px）：称重卡片上下排列，字体适配小屏
-- **桌面端**（>= 768px）：称重卡片并排，整体居中最大宽度 640px
+- **桌面端**（>= 768px）：称重卡片并排，整体居中最大宽度 960px
+
+## 可访问性
+
+- 按钮和 tab 使用语义化 HTML 元素（`<button>`, `<nav>`）
+- 折叠区块使用 `aria-expanded` 属性
+- 不只靠颜色区分人物，同时有文字标签
+- 文本/背景满足 WCAG AA 对比度
+- 触控目标至少 44px
 
 ## 视觉风格
 
@@ -209,11 +260,13 @@ food-tracker/
 ├── data/
 │   └── meal-plan.md              # 原始 Markdown 食谱
 ├── lib/
-│   ├── parser.ts                 # Markdown → JSON 解析器
+│   ├── parser.ts                 # Markdown → JSON 解析器（构建时运行）
+│   ├── schema.ts                 # zod schema 定义 + 校验
 │   ├── types.ts                  # TypeScript 类型定义
-│   └── meal-data.ts              # 导出解析后的数据
+│   └── data.ts                   # 数据访问层（统一的 getData 函数）
 ├── app/
 │   ├── layout.tsx                # 全局布局（底部导航）
+│   ├── globals.css               # Tailwind 全局样式入口
 │   ├── page.tsx                  # 首页（每日概览）
 │   └── shopping/
 │       └── page.tsx              # 采购清单页面
@@ -223,13 +276,22 @@ food-tracker/
 │   ├── CollapsibleSection.tsx    # 折叠区块组件
 │   ├── ShoppingItem.tsx          # 采购清单项组件
 │   └── BottomNav.tsx             # 底部导航组件
+├── __tests__/                    # 测试文件
+│   ├── parser.test.ts            # 解析器测试
+│   ├── date-utils.test.ts        # 日期逻辑测试
+│   └── shopping-state.test.ts    # 采购清单状态测试
+├── e2e/                          # Playwright E2E 测试
+│   └── smoke.spec.ts
 ├── package.json
 ├── next.config.js                # 静态导出配置
+├── tailwind.config.ts
+├── .prettierrc
+├── .eslintrc.js
 └── tsconfig.json
 ```
 
 ## 未来扩展点
 
-- 在线编辑食谱：加 API routes + 数据库
-- 多食谱支持：支持多个 Markdown 文件切换
-- PWA：离线访问，添加到手机主屏幕
+- **在线编辑食谱**: 切换到 SSR/Serverless 部署，加 API routes + 数据库，`lib/data.ts` 改为调用 API
+- **多食谱支持**: 支持多个 Markdown 文件切换
+- **PWA**: 离线访问，添加到手机主屏幕
