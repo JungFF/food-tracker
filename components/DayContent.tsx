@@ -12,6 +12,20 @@ interface DayContentProps {
   executionReminders: string[];
 }
 
+function TipList({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div>
+      <h4 className="mb-1 font-semibold text-text">{title}</h4>
+      <ul className="list-disc space-y-1 pl-5">
+        {items.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function DayContent({
   dayPlan,
   recipe,
@@ -48,26 +62,8 @@ export default function DayContent({
       {/* Meal prep tips & execution reminders */}
       <CollapsibleSection title="备餐与提醒" icon="📋">
         <div className="space-y-3 text-sm text-text-secondary">
-          {mealPrepTips.length > 0 && (
-            <div>
-              <h4 className="mb-1 font-semibold text-text">备餐贴士</h4>
-              <ul className="list-disc space-y-1 pl-5">
-                {mealPrepTips.map((tip, i) => (
-                  <li key={i}>{tip}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {executionReminders.length > 0 && (
-            <div>
-              <h4 className="mb-1 font-semibold text-text">执行提醒</h4>
-              <ul className="list-disc space-y-1 pl-5">
-                {executionReminders.map((reminder, i) => (
-                  <li key={i}>{reminder}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <TipList title="备餐贴士" items={mealPrepTips} />
+          <TipList title="执行提醒" items={executionReminders} />
         </div>
       </CollapsibleSection>
 

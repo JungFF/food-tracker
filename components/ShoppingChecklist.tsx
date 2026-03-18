@@ -88,7 +88,8 @@ export default function ShoppingChecklist({ shoppingList }: ShoppingChecklistPro
     );
   }
 
-  const checkedCount = allItems.filter((item) => checkedIds.includes(item.id)).length;
+  const checkedSet = new Set(checkedIds);
+  const checkedCount = allItems.filter((item) => checkedSet.has(item.id)).length;
   const percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
 
   return (
