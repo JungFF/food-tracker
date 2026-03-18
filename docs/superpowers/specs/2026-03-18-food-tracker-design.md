@@ -35,6 +35,8 @@ interface MealPlan {
   weekPlan: DayPlan[]
   shoppingList: ShoppingList
   recipes: Recipe[]
+  mealPrepTips: string[]          // 备餐建议（如何分装、冷冻、解冻等）
+  executionReminders: string[]    // 执行提醒（如"糙米按熟重"、"虾仁按生重"等）
 }
 
 interface FixedBreakfast {
@@ -50,18 +52,22 @@ interface Ingredient {
 }
 
 interface PersonWeighing {
-  rice: number                    // 糙米熟重 g
-  protein: string                 // 主蛋白描述（如 "虾仁 310.9g"）
+  rice: number                    // 糙米熟重 g（称熟饭重量）
+  protein: string                 // 主蛋白描述（如 "虾仁 310.9g"，称生重）
   vegetable: number               // 蔬菜 g
   oil: number                     // 油 g
   powder: number                  // 蛋白粉 g
 }
 
+// 共 4 套模板，非对称分布：
+// - 虾仁日：你和老婆都用模板 A，但克数不同（按各自热量目标计算）
+// - 牛肉日：你用模板 B，老婆用模板 C（现实版，蛋白粉更少、牛肉更多）
+// - 不存在 B_wife 或 C_you
 interface Templates {
-  A_you: PersonWeighing           // 虾仁日 - 你
-  A_wife: PersonWeighing          // 虾仁日 - 老婆
-  B_you: PersonWeighing           // 牛肉日 - 你
-  C_wife: PersonWeighing          // 牛肉日 - 老婆
+  A_you: PersonWeighing           // 虾仁日 - 你（~2000kcal）
+  A_wife: PersonWeighing          // 虾仁日 - 老婆（~1000kcal）
+  B_you: PersonWeighing           // 牛肉日 - 你（~2000kcal）
+  C_wife: PersonWeighing          // 牛肉日 - 老婆（~1000kcal，现实版）
 }
 
 interface DayPlan {
@@ -80,9 +86,11 @@ interface Recipe {
 
 interface ShoppingList {
   breakfast: ShoppingItem[]
+  staple: ShoppingItem[]          // 主食（糙米）
   protein: ShoppingItem[]
-  vegetable: ShoppingItem[]
-  condiment: ShoppingItem[]
+  vegetable: ShoppingItem[]       // 按具体蔬菜逐项列出，非仅总量
+  oil: ShoppingItem[]             // 食用油（有具体克数）
+  condiment: ShoppingItem[]       // 调味料（生抽/盐/黑胡椒/蒜/姜，合并为一项）
 }
 
 interface ShoppingItem {
@@ -128,17 +136,22 @@ function getTodayDayNumber(): number {
 3. **称重清单**
    - 两人并排显示（桌面端），上下排列（手机端）
    - 每人一张卡片，不同背景色区分（你=暖黄，老婆=粉色）
-   - 每张卡片列出：糙米(熟重)、主蛋白、蔬菜、油、蛋白粉及对应克数
-   - 标注"午晚餐总量，平分两餐"
+   - 每张卡片列出：糙米(熟重)、主蛋白(生重)、蔬菜、油、蛋白粉及对应克数
+   - 糙米标注"熟重"，虾仁/牛腿肉标注"生重"（重要：避免称错）
+   - 标注"午晚餐总量，各自分锅炒，平分两餐"
 
 4. **做法步骤**（折叠，默认收起）
    - 展开后显示当天菜品的简易做法步骤
 
-5. **早餐区块**
+5. **备餐与提醒**（折叠，默认收起）
+   - 展开后显示备餐建议（如何分装糙米、冷冻虾仁、处理牛肉等）
+   - 以及执行提醒（糙米按熟重、虾仁牛肉按生重、蛋白粉按克称等）
+
+6. **早餐区块**
    - 奶昔配方**始终显示**：豆浆 350ml、黄瓜 150g、菠菜 50g、橙子 130g
    - 早餐详情**折叠，默认收起**：展开后显示你和老婆各自的早餐内容
 
-6. **底部导航栏**
+7. **底部导航栏**
    - 两个 tab：今日 / 采购清单
 
 ### 采购清单 `/shopping`
@@ -151,10 +164,12 @@ function getTodayDayNumber(): number {
    - 重置按钮（清空所有勾选）
 
 2. **分类列表**
-   - 按类别分组：早餐、蛋白质、蔬菜、油与调味料
+   - 按类别分组：早餐、主食、蛋白质、蔬菜、食用油、调味料
+   - 蔬菜按具体品种逐项列出（油麦菜、上海青等），不只显示总量
+   - 食用油单独一项（有具体克数 102.6g），与调味料分开
+   - 调味料（生抽/盐/黑胡椒/蒜/姜）合并为一项（都是"适量"）
    - 每项显示：勾选框 + 食材名 + 数量 + 备注（小字）
    - 勾选后：文字划线变灰
-   - 调味料（生抽/盐/黑胡椒/蒜/姜）合并为一项
 
 3. **底部导航栏**（同首页）
 
@@ -164,6 +179,7 @@ function getTodayDayNumber(): number {
 - key: `shopping-checklist`
 - value: 已勾选食材 name 的数组
 - 重置按钮清空该 key
+- 注意：采购清单组件需用 `'use client'` + `useEffect` 读取 localStorage，避免 SSG 水合不匹配
 
 ## 响应式设计
 
