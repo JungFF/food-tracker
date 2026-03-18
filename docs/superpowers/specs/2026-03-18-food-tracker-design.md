@@ -14,11 +14,19 @@
 
 ## 技术选型
 
-- **框架**: Next.js（静态导出）
+- **框架**: Next.js（静态导出）+ React + TypeScript
+- **样式**: Tailwind CSS，暖橙/棕色系配色，食物主题设计感
 - **部署**: Vercel（免费、自动 HTTPS、push 即部署）
 - **数据源**: Markdown 文件，构建时解析为 JSON
 - **状态存储**: localStorage（采购清单勾选状态）
-- **样式**: 暖橙/棕色系配色，食物主题设计感
+
+## 代码质量
+
+- **Pre-commit hook**（通过 husky + lint-staged）：
+  - `eslint` — 代码风格检查
+  - `tsc --noEmit` — 类型检查
+- **ESLint**: 启用 `@typescript-eslint/no-explicit-any`（error 级别），禁止使用 `any`
+- 写第一行业务代码之前，先配好 hook 和 lint 规则
 
 ## 数据架构
 
