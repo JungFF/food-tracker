@@ -3,7 +3,7 @@ const WEEKDAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五
 
 export function getDayNumber(date?: Date): number {
   const d = date ?? new Date();
-  const jsDay = d.getUTCDay();
+  const jsDay = d.getDay();
   return jsDay === 0 ? 7 : jsDay;
 }
 

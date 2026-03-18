@@ -7,20 +7,20 @@ describe('getDayNumber', () => {
 
   it('returns 1 for Monday', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-03-16')); // Monday
+    vi.setSystemTime(new Date(2026, 2, 16)); // Monday (local time)
     expect(getDayNumber()).toBe(1);
     vi.useRealTimers();
   });
 
   it('returns 7 for Sunday', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-03-22')); // Sunday
+    vi.setSystemTime(new Date(2026, 2, 22)); // Sunday (local time)
     expect(getDayNumber()).toBe(7);
     vi.useRealTimers();
   });
 
   it('returns correct day for a specific date argument', () => {
-    expect(getDayNumber(new Date('2026-03-18'))).toBe(3); // Wednesday
+    expect(getDayNumber(new Date(2026, 2, 18))).toBe(3); // Wednesday (local time)
   });
 });
 
