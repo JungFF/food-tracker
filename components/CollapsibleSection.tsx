@@ -37,13 +37,12 @@ export default function CollapsibleSection({
         </span>
       </button>
       <div
-        className="transition-all duration-300 ease-in-out overflow-hidden"
-        style={{
-          maxHeight: isOpen ? '1000px' : '0px',
-          opacity: isOpen ? 1 : 0,
-        }}
+        className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+        style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
       >
-        <div className="px-4 pb-4">{children}</div>
+        <div className="overflow-hidden">
+          <div className="px-4 pb-4">{children}</div>
+        </div>
       </div>
     </div>
   );
