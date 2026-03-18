@@ -48,7 +48,7 @@
 ### 环境基线
 
 - **Node**: >= 20 LTS
-- **包管理器**: pnpm
+- **包管理器**: npm
 - **NPM scripts**: `dev`（开发）、`build`（构建）、`lint`（ESLint + Prettier check）、`typecheck`（tsc --noEmit）、`test`（单元测试）、`test:e2e`（Playwright）
 
 ### 测试策略
