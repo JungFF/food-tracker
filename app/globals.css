@@ -1,26 +1,40 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: #e65100;
+  --color-primary-light: #ff8a65;
+  --color-bg-gradient-start: #fff3e0;
+  --color-bg-gradient-end: #fbe9e7;
+  --color-you: #fff8e1;
+  --color-wife: #fce4ec;
+  --color-text: #4e342e;
+  --color-text-secondary: #8d6e63;
+  --color-text-muted: #b0906f;
+  --color-border: #f0e6de;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-light: var(--color-primary-light);
+  --color-bg-gradient-start: var(--color-bg-gradient-start);
+  --color-bg-gradient-end: var(--color-bg-gradient-end);
+  --color-you: var(--color-you);
+  --color-wife: var(--color-wife);
+  --color-text: var(--color-text);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-border: var(--color-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: linear-gradient(
+    to bottom,
+    var(--color-bg-gradient-start),
+    var(--color-bg-gradient-end)
+  );
+  color: var(--color-text);
   font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
 }
