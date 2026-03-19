@@ -142,7 +142,7 @@ export default function ShoppingChecklist({
             title={cat.title}
             icon={cat.icon}
             items={items}
-            checkedIds={checkedIds}
+            checkedSet={checkedSet}
             onToggle={handleToggle}
           />
         );

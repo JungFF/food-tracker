@@ -330,7 +330,7 @@ function makeShoppingItem(
     unit: parsed.unit,
     displayAmount: amountStr.trim(),
   };
-  if (note && note.length > 0) {
+  if (note) {
     item.note = note;
   }
   return item;

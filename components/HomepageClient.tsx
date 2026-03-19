@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 
 import { getDayNumber } from '@/lib/date-utils';
 import { useLocale } from '@/lib/i18n';
@@ -33,16 +33,12 @@ function HomepageInner({ mealPlanZh, mealPlanEn }: HomepageClientProps) {
   const dayPlan = mealPlan.weekPlan.find((d) => d.day === currentDay);
   const recipe = mealPlan.recipes.find((r) => r.day === currentDay);
 
-  const handleDayChange = useCallback((day: number) => {
-    setCurrentDay(day);
-  }, []);
-
   return (
     <>
       <DayNavigation
         weekPlan={mealPlan.weekPlan}
         currentDay={currentDay}
-        onDayChange={handleDayChange}
+        onDayChange={setCurrentDay}
       />
       {dayPlan && (
         <DayContent

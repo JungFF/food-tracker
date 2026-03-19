@@ -6,7 +6,7 @@ interface ShoppingCategoryProps {
   title: string;
   icon: string;
   items: ShoppingItem[];
-  checkedIds: string[];
+  checkedSet: Set<string>;
   onToggle: (id: string) => void;
 }
 
@@ -14,7 +14,7 @@ export default function ShoppingCategory({
   title,
   icon,
   items,
-  checkedIds,
+  checkedSet,
   onToggle,
 }: ShoppingCategoryProps) {
   return (
@@ -28,7 +28,7 @@ export default function ShoppingCategory({
           <ShoppingItemRow
             key={item.id}
             item={item}
-            checked={checkedIds.includes(item.id)}
+            checked={checkedSet.has(item.id)}
             onToggle={onToggle}
           />
         ))}

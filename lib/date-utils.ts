@@ -17,12 +17,14 @@ export function getDayNumber(date?: Date): number {
   return jsDay === 0 ? 7 : jsDay;
 }
 
+function weekdayIndex(day: number): number {
+  return day % 7;
+}
+
 export function getDayLabel(day: number, locale: Locale = 'zh'): string {
-  const weekdayIndex = day === 7 ? 0 : day;
-  return `Day ${day} · ${translations[WEEKDAY_KEYS[weekdayIndex]][locale]}`;
+  return `Day ${day} · ${translations[WEEKDAY_KEYS[weekdayIndex(day)]][locale]}`;
 }
 
 export function getWeekdayName(day: number, locale: Locale = 'zh'): string {
-  const weekdayIndex = day === 7 ? 0 : day;
-  return translations[WEEKDAY_KEYS[weekdayIndex]][locale];
+  return translations[WEEKDAY_KEYS[weekdayIndex(day)]][locale];
 }

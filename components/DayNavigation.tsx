@@ -47,20 +47,9 @@ export default function DayNavigation({ weekPlan, currentDay, onDayChange }: Day
     onDayChange(todayNum);
   }, [todayNum, onDayChange]);
 
-  const dayTypeBadge = (dayType: '虾仁日' | '牛肉日') => {
-    if (dayType === '虾仁日') {
-      return (
-        <span className="inline-block rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
-          {t('day.shrimp')}
-        </span>
-      );
-    }
-    return (
-      <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-        {t('day.beef')}
-      </span>
-    );
-  };
+  const isShrimp = currentPlan?.dayType === '虾仁日';
+  const badgeColors = isShrimp ? 'bg-orange-100 text-orange-700' : 'bg-amber-100 text-amber-800';
+  const badgeLabel = isShrimp ? t('day.shrimp') : t('day.beef');
 
   return (
     <div className="mb-4 rounded-xl bg-gradient-to-r from-bg-gradient-start to-bg-gradient-end p-4 shadow-sm">
@@ -79,7 +68,13 @@ export default function DayNavigation({ weekPlan, currentDay, onDayChange }: Day
         <div className="flex flex-col items-center gap-1">
           <div className="flex items-center gap-2">
             <span className="text-base font-bold text-text">{getDayLabel(currentDay, locale)}</span>
-            {currentPlan && dayTypeBadge(currentPlan.dayType)}
+            {currentPlan && (
+              <span
+                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${badgeColors}`}
+              >
+                {badgeLabel}
+              </span>
+            )}
           </div>
           <button
             type="button"
