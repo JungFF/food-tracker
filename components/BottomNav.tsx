@@ -3,13 +3,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const tabs = [
-  { href: '/', label: '今日', icon: '🏠' },
-  { href: '/shopping', label: '采购清单', icon: '🛒' },
-] as const;
+import { useT } from '@/lib/i18n';
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const t = useT();
+
+  const tabs = [
+    { href: '/', label: t('nav.today'), icon: '🏠' },
+    { href: '/shopping', label: t('nav.shopping'), icon: '🛒' },
+  ] as const;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-white">
