@@ -1,5 +1,15 @@
-// lib/date-utils.ts
-const WEEKDAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+import { translations } from './translations';
+import type { Locale } from './types';
+
+const WEEKDAY_KEYS = [
+  'weekday.sun',
+  'weekday.mon',
+  'weekday.tue',
+  'weekday.wed',
+  'weekday.thu',
+  'weekday.fri',
+  'weekday.sat',
+] as const;
 
 export function getDayNumber(date?: Date): number {
   const d = date ?? new Date();
@@ -7,12 +17,12 @@ export function getDayNumber(date?: Date): number {
   return jsDay === 0 ? 7 : jsDay;
 }
 
-export function getDayLabel(day: number): string {
+export function getDayLabel(day: number, locale: Locale = 'zh'): string {
   const weekdayIndex = day === 7 ? 0 : day;
-  return `Day ${day} · ${WEEKDAY_NAMES[weekdayIndex]}`;
+  return `Day ${day} · ${translations[WEEKDAY_KEYS[weekdayIndex]][locale]}`;
 }
 
-export function getWeekdayName(day: number): string {
+export function getWeekdayName(day: number, locale: Locale = 'zh'): string {
   const weekdayIndex = day === 7 ? 0 : day;
-  return WEEKDAY_NAMES[weekdayIndex];
+  return translations[WEEKDAY_KEYS[weekdayIndex]][locale];
 }
