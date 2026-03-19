@@ -3,7 +3,7 @@ import HomepageClient from '@/components/HomepageClient';
 import { getMealPlan } from '@/lib/data';
 
 export default function HomePage() {
-  const mealPlan = getMealPlan();
+  const mealPlan = getMealPlan('zh');
   return (
     <main className="mx-auto max-w-[960px] px-4 pb-20">
       <HomepageClient weekPlan={mealPlan.weekPlan} />
