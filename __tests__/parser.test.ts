@@ -7,6 +7,7 @@ import { parseMealPlan } from '@/lib/parser';
 import { mealPlanSchema } from '@/lib/schema';
 
 const markdown = fs.readFileSync(path.join(__dirname, '../data/meal-plan.md'), 'utf-8');
+const markdownEn = fs.readFileSync(path.join(__dirname, '../data/meal-plan.en.md'), 'utf-8');
 
 describe('parseMealPlan', () => {
   // Breakfast tests
@@ -140,5 +141,30 @@ describe('parseMealPlan', () => {
     expect(plan.shoppingList.breakfast[0].id).toBe('breakfast:0');
     expect(plan.shoppingList.breakfast[1].id).toBe('breakfast:1');
     expect(plan.shoppingList.protein[0].id).toBe('protein:0');
+  });
+});
+
+describe('parseMealPlan (English)', () => {
+  it('parses English markdown and passes Zod validation', () => {
+    const plan = parseMealPlan(markdownEn);
+    const validated = mealPlanSchema.parse(plan);
+    expect(validated.weekPlan).toHaveLength(7);
+    expect(validated.fixedBreakfast.smoothie).toHaveLength(4);
+    expect(validated.recipes.length).toBeGreaterThan(0);
+    expect(validated.shoppingList.breakfast.length).toBeGreaterThan(0);
+  });
+
+  it('English breakfast text preserves spaces', () => {
+    const plan = parseMealPlan(markdownEn);
+    if (plan.fixedBreakfast.you.includes(' ')) {
+      expect(plan.fixedBreakfast.you).toContain(' ');
+    }
+  });
+
+  it('English dayType values remain Chinese', () => {
+    const plan = parseMealPlan(markdownEn);
+    for (const day of plan.weekPlan) {
+      expect(['虾仁日', '牛肉日']).toContain(day.dayType);
+    }
   });
 });
