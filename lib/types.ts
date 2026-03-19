@@ -1,3 +1,5 @@
+export type Locale = 'zh' | 'en';
+
 export interface MealPlan {
   fixedBreakfast: FixedBreakfast;
   weekPlan: DayPlan[];

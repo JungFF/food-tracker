@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 import { mealPlanSchema } from '@/lib/schema';
+import type { Locale } from '@/lib/types';
 
 const validMealPlan = {
   fixedBreakfast: {
@@ -163,5 +164,12 @@ describe('mealPlanSchema', () => {
       const result = mealPlanSchema.safeParse(invalid);
       expect(result.success).toBe(false);
     });
+  });
+
+  it('Locale type accepts zh and en', () => {
+    const zh: Locale = 'zh';
+    const en: Locale = 'en';
+    expect(zh).toBe('zh');
+    expect(en).toBe('en');
   });
 });
