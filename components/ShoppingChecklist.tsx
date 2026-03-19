@@ -2,23 +2,16 @@
 
 import { useCallback, useSyncExternalStore } from 'react';
 
+import { useLocale, useT } from '@/lib/i18n';
 import { getCheckedIds, resetChecklist, toggleItem } from '@/lib/shopping-storage';
 import type { ShoppingList } from '@/lib/types';
 
 import ShoppingCategory from './ShoppingCategory';
 
 interface ShoppingChecklistProps {
-  shoppingList: ShoppingList;
+  shoppingListZh: ShoppingList;
+  shoppingListEn: ShoppingList;
 }
-
-const categories = [
-  { key: 'breakfast' as const, title: '早餐', icon: '🍳' },
-  { key: 'staple' as const, title: '主食', icon: '🍚' },
-  { key: 'protein' as const, title: '蛋白质', icon: '🥩' },
-  { key: 'vegetable' as const, title: '蔬菜', icon: '🥬' },
-  { key: 'oil' as const, title: '食用油', icon: '🫒' },
-  { key: 'pantry' as const, title: '家中常备', icon: '🏠' },
-];
 
 // External store for checked IDs backed by localStorage
 const listeners = new Set<() => void>();
@@ -53,7 +46,23 @@ if (typeof window !== 'undefined') {
   cachedSnapshot = getCheckedIds();
 }
 
-export default function ShoppingChecklist({ shoppingList }: ShoppingChecklistProps) {
+export default function ShoppingChecklist({
+  shoppingListZh,
+  shoppingListEn,
+}: ShoppingChecklistProps) {
+  const locale = useLocale();
+  const t = useT();
+  const shoppingList = locale === 'en' ? shoppingListEn : shoppingListZh;
+
+  const categories = [
+    { key: 'breakfast' as const, title: t('shopping.cat.breakfast'), icon: '🍳' },
+    { key: 'staple' as const, title: t('shopping.cat.staple'), icon: '🍚' },
+    { key: 'protein' as const, title: t('shopping.cat.protein'), icon: '🥩' },
+    { key: 'vegetable' as const, title: t('shopping.cat.vegetable'), icon: '🥬' },
+    { key: 'oil' as const, title: t('shopping.cat.oil'), icon: '🫒' },
+    { key: 'pantry' as const, title: t('shopping.cat.pantry'), icon: '🏠' },
+  ];
+
   const checkedIds = useCheckedIds();
 
   const allItems = categories.flatMap((cat) => shoppingList[cat.key]);
@@ -65,11 +74,11 @@ export default function ShoppingChecklist({ shoppingList }: ShoppingChecklistPro
   }, []);
 
   const handleReset = useCallback(() => {
-    if (window.confirm('确定要清除所有勾选记录吗？')) {
+    if (window.confirm(t('shopping.confirm_reset'))) {
       resetChecklist();
       refreshSnapshot();
     }
-  }, []);
+  }, [t]);
 
   // Skeleton while loading (server snapshot is null)
   if (checkedIds === null) {
@@ -92,15 +101,17 @@ export default function ShoppingChecklist({ shoppingList }: ShoppingChecklistPro
   const checkedCount = allItems.filter((item) => checkedSet.has(item.id)).length;
   const percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
 
+  const progressText = t('shopping.progress')
+    .replace('{checked}', String(checkedCount))
+    .replace('{total}', String(totalCount));
+
   return (
     <div className="pt-6 px-4">
       {/* Header */}
       <div className="rounded-xl bg-gradient-to-r from-bg-gradient-start to-bg-gradient-end p-4 mb-4">
-        <h1 className="text-xl font-bold text-text mb-3">🛒 一周采购清单</h1>
+        <h1 className="text-xl font-bold text-text mb-3">{t('shopping.title')}</h1>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-text-secondary">
-            已买 {checkedCount} / 共 {totalCount} 项
-          </span>
+          <span className="text-sm text-text-secondary">{progressText}</span>
           <span className="text-sm font-semibold text-primary">{percentage}%</span>
         </div>
         <div className="w-full h-2.5 rounded-full bg-border overflow-hidden">
@@ -116,7 +127,7 @@ export default function ShoppingChecklist({ shoppingList }: ShoppingChecklistPro
               border border-primary/30 hover:bg-primary/10 transition-colors
               min-h-[44px] min-w-[44px]"
           >
-            重置清单
+            {t('shopping.reset')}
           </button>
         </div>
       </div>

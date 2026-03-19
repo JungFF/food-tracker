@@ -2,10 +2,11 @@ import ShoppingChecklist from '@/components/ShoppingChecklist';
 import { getShoppingList } from '@/lib/data';
 
 export default function ShoppingPage() {
-  const shoppingList = getShoppingList('zh');
+  const shoppingListZh = getShoppingList('zh');
+  const shoppingListEn = getShoppingList('en');
   return (
     <main className="max-w-[960px] mx-auto pb-20">
-      <ShoppingChecklist shoppingList={shoppingList} />
+      <ShoppingChecklist shoppingListZh={shoppingListZh} shoppingListEn={shoppingListEn} />
     </main>
   );
 }
