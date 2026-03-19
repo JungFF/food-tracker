@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 
 import { getDayLabel, getDayNumber } from '@/lib/date-utils';
@@ -26,6 +27,7 @@ function getCalendarDate(dayNumber: number, locale: 'zh' | 'en'): string {
 }
 
 export default function DayNavigation({ weekPlan, currentDay, onDayChange }: DayNavigationProps) {
+  const router = useRouter();
   const locale = useLocale();
   const t = useT();
 
@@ -33,19 +35,25 @@ export default function DayNavigation({ weekPlan, currentDay, onDayChange }: Day
 
   const currentPlan = weekPlan.find((d) => d.day === currentDay);
 
+  const navigate = useCallback(
+    (day: number) => {
+      onDayChange(day);
+      router.replace(`/?day=${day}`, { scroll: false });
+    },
+    [onDayChange, router]
+  );
+
   const goPrev = useCallback(() => {
-    const prev = currentDay === 1 ? 7 : currentDay - 1;
-    onDayChange(prev);
-  }, [currentDay, onDayChange]);
+    navigate(currentDay === 1 ? 7 : currentDay - 1);
+  }, [currentDay, navigate]);
 
   const goNext = useCallback(() => {
-    const next = currentDay === 7 ? 1 : currentDay + 1;
-    onDayChange(next);
-  }, [currentDay, onDayChange]);
+    navigate(currentDay === 7 ? 1 : currentDay + 1);
+  }, [currentDay, navigate]);
 
   const goToday = useCallback(() => {
-    onDayChange(todayNum);
-  }, [todayNum, onDayChange]);
+    navigate(todayNum);
+  }, [todayNum, navigate]);
 
   const isShrimp = currentPlan?.dayType === '虾仁日';
   const badgeColors = isShrimp ? 'bg-orange-100 text-orange-700' : 'bg-amber-100 text-amber-800';
