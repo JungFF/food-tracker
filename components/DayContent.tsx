@@ -1,3 +1,6 @@
+'use client';
+
+import { useT } from '@/lib/i18n';
 import type { DayPlan, FixedBreakfast, Recipe } from '@/lib/types';
 
 import BreakfastSection from './BreakfastSection';
@@ -33,24 +36,22 @@ export default function DayContent({
   mealPrepTips,
   executionReminders,
 }: DayContentProps) {
+  const t = useT();
   return (
-    <div data-day={dayPlan.day} className="hidden space-y-4">
-      {/* Menu heading */}
+    <div className="space-y-4">
       <h2 className="text-lg font-bold text-text">{dayPlan.menu}</h2>
 
-      {/* Weighing cards */}
       <div className="flex flex-col gap-4 md:flex-row">
         <div className="flex-1">
-          <WeighingCard person="you" weighing={dayPlan.you} />
+          <WeighingCard person="you" weighing={dayPlan.you} dayType={dayPlan.dayType} />
         </div>
         <div className="flex-1">
-          <WeighingCard person="wife" weighing={dayPlan.wife} />
+          <WeighingCard person="wife" weighing={dayPlan.wife} dayType={dayPlan.dayType} />
         </div>
       </div>
 
-      {/* Recipe steps */}
       {recipe && (
-        <CollapsibleSection title="做法步骤" icon="👨‍🍳">
+        <CollapsibleSection title={t('section.recipe_steps')} icon="👨‍🍳">
           <ol className="list-decimal space-y-1.5 pl-5 text-sm text-text-secondary">
             {recipe.steps.map((step, i) => (
               <li key={i}>{step}</li>
@@ -59,18 +60,16 @@ export default function DayContent({
         </CollapsibleSection>
       )}
 
-      {/* Meal prep tips & execution reminders */}
-      <CollapsibleSection title="备餐与提醒" icon="📋">
+      <CollapsibleSection title={t('section.prep_reminders')} icon="📋">
         <div className="space-y-3 text-sm text-text-secondary">
-          <TipList title="备餐贴士" items={mealPrepTips} />
-          <TipList title="执行提醒" items={executionReminders} />
+          <TipList title={t('section.meal_prep_tips')} items={mealPrepTips} />
+          <TipList title={t('section.execution_reminders')} items={executionReminders} />
         </div>
       </CollapsibleSection>
 
-      {/* Breakfast — smoothie always visible, details collapsible */}
       <div className="space-y-2">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
-          🥤 早餐奶昔（两人平分）
+          {t('breakfast.smoothie_title')}
         </h3>
         <BreakfastSection breakfast={breakfast} />
       </div>

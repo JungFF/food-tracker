@@ -1,19 +1,66 @@
 'use client';
 
-import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 
-import type { DayPlan } from '@/lib/types';
+import { getDayNumber } from '@/lib/date-utils';
+import { useLocale } from '@/lib/i18n';
+import type { MealPlan } from '@/lib/types';
 
+import DayContent from './DayContent';
 import DayNavigation from './DayNavigation';
 
-function HomepageInner({ weekPlan }: { weekPlan: DayPlan[] }) {
-  return <DayNavigation weekPlan={weekPlan} />;
+interface HomepageClientProps {
+  mealPlanZh: MealPlan;
+  mealPlanEn: MealPlan;
 }
 
-export default function HomepageClient({ weekPlan }: { weekPlan: DayPlan[] }) {
+function HomepageInner({ mealPlanZh, mealPlanEn }: HomepageClientProps) {
+  const locale = useLocale();
+  const searchParams = useSearchParams();
+
+  const todayNum = useMemo(() => getDayNumber(), []);
+  const [currentDay, setCurrentDay] = useState(() => {
+    const paramDay = searchParams.get('day');
+    if (paramDay) {
+      const n = Number(paramDay);
+      if (n >= 1 && n <= 7) return n;
+    }
+    return todayNum;
+  });
+
+  const mealPlan = locale === 'en' ? mealPlanEn : mealPlanZh;
+  const dayPlan = mealPlan.weekPlan.find((d) => d.day === currentDay);
+  const recipe = mealPlan.recipes.find((r) => r.day === currentDay);
+
+  const handleDayChange = useCallback((day: number) => {
+    setCurrentDay(day);
+  }, []);
+
+  return (
+    <>
+      <DayNavigation
+        weekPlan={mealPlan.weekPlan}
+        currentDay={currentDay}
+        onDayChange={handleDayChange}
+      />
+      {dayPlan && (
+        <DayContent
+          dayPlan={dayPlan}
+          recipe={recipe}
+          breakfast={mealPlan.fixedBreakfast}
+          mealPrepTips={mealPlan.mealPrepTips}
+          executionReminders={mealPlan.executionReminders}
+        />
+      )}
+    </>
+  );
+}
+
+export default function HomepageClient(props: HomepageClientProps) {
   return (
     <Suspense fallback={<HomepageSkeleton />}>
-      <HomepageInner weekPlan={weekPlan} />
+      <HomepageInner {...props} />
     </Suspense>
   );
 }
