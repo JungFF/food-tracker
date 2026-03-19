@@ -85,3 +85,48 @@ The spec defines the toggle visually but not behaviorally. On mobile, a fixed to
 ### Summary
 The top three issues are the inaccurate "parser unchanged" assumption, the Chinese-first flash caused by client-only locale initialization, and the unnecessary move of core page rendering into a large client boundary. Those three choices drive most of the spec's downstream feasibility, UX, and maintainability risks.
 **Consensus Status**: NEEDS_REVISION
+
+---
+
+## Round 2 — 2026-03-18
+
+### Overall Assessment
+
+The revised spec addresses the majority of Round 1 issues. The parser anchor enumeration, breakfast whitespace fix, typed translations, and testing section are substantial improvements. Three new issues were identified around bootstrap consistency, structural markdown formats, and date formatting approach.
+**Rating**: 7/10
+
+### Previous Round Tracking
+
+| # | Issue | Status | Notes |
+|---|-------|--------|-------|
+| 1 | Hidden Chinese parser anchors | Resolved | Full anchor list now in spec |
+| 2 | English breakfast text mangled | Resolved | Parser change documented |
+| 3 | Chinese-first flash | Resolved | Pre-hydration script added; residual content flash accepted as tradeoff |
+| 4 | Client rendering tradeoff | Resolved | Justified for static export personal app |
+| 5 | Double payload | Resolved | Bounded and accepted |
+| 6 | Shopping ID brittleness | Resolved | Index-based IDs acceptable for fixed weekly plan; v2 storage bump added |
+| 7 | Pantry quantity sentinel | Resolved | `适量` listed as required anchor |
+| 8 | Locale type in wrong module | Resolved | Moved to `lib/types.ts` |
+| 9 | Stringly typed dictionary | Resolved | `as const` + `TranslationKey` |
+| 10 | Metadata incomplete | Resolved | SEO scoped out explicitly |
+| 11 | Missing test plan | Resolved | Test section added with i18n provider tests |
+| 12 | proteinEmoji locale-dependent | Resolved | Derived from dayType |
+| 13 | Toggle placement | Resolved | Constraints specified |
+| 14 | Bootstrap inconsistency | Resolved | Unified single-flow bootstrap documented |
+| 15 | Structural format invariants | Resolved | Recipe/tip/reminder formats documented |
+| 16 | Date translation split | Resolved | Dropped translation key, using formatter function |
+
+### New Issues
+
+None identified.
+
+### Positive Aspects
+
+- The locale bootstrap is now a clear single-path flow with no ambiguity
+- The English MD authoring contract is now complete with both anchor strings and structural format requirements
+- The spec is implementation-ready
+
+### Summary
+
+All 16 issues from Rounds 1 and 2 are resolved. The spec is comprehensive and internally consistent.
+**Consensus Status**: APPROVED
