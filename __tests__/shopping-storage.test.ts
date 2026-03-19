@@ -1,7 +1,7 @@
 // __tests__/shopping-storage.test.ts
 import { describe, it, expect, beforeEach } from 'vitest';
 
-import { getCheckedIds, toggleItem, resetChecklist } from '@/lib/shopping-storage';
+import { getCheckedIds, toggleItem, resetChecklist, STORAGE_KEY } from '@/lib/shopping-storage';
 
 describe('shopping-storage', () => {
   beforeEach(() => {
@@ -37,5 +37,14 @@ describe('shopping-storage', () => {
     };
     expect(getCheckedIds()).toEqual([]);
     Storage.prototype.getItem = originalGetItem;
+  });
+
+  it('uses v2 storage key', () => {
+    expect(STORAGE_KEY).toContain('v2');
+  });
+
+  it('old v1 data is not loaded after version bump', () => {
+    localStorage.setItem('shopping-checklist:v1:default', JSON.stringify(['breakfast:baozi']));
+    expect(getCheckedIds()).toEqual([]);
   });
 });

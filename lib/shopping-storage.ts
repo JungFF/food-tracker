@@ -1,6 +1,6 @@
 // lib/shopping-storage.ts
 const PLAN_HASH = 'default';
-export const STORAGE_KEY = `shopping-checklist:v1:${PLAN_HASH}`;
+export const STORAGE_KEY = `shopping-checklist:v2:${PLAN_HASH}`;
 
 export function getCheckedIds(): string[] {
   try {

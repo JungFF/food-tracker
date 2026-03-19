@@ -129,4 +129,16 @@ describe('parseMealPlan', () => {
     if (!result.success) console.error(result.error.format());
     expect(result.success).toBe(true);
   });
+
+  it('breakfast text preserves spaces for English content', () => {
+    const plan = parseMealPlan(markdown);
+    expect(plan.fixedBreakfast.you.length).toBeGreaterThan(0);
+  });
+
+  it('shopping item IDs are index-based', () => {
+    const plan = parseMealPlan(markdown);
+    expect(plan.shoppingList.breakfast[0].id).toBe('breakfast:0');
+    expect(plan.shoppingList.breakfast[1].id).toBe('breakfast:1');
+    expect(plan.shoppingList.protein[0].id).toBe('protein:0');
+  });
 });

@@ -90,9 +90,9 @@ function parseFixedBreakfast(markdown: string): FixedBreakfast {
     const person = row[0];
     const content = row[1];
     if (person.includes('你老婆')) {
-      wife = content.replace(/\s+/g, '');
+      wife = content.trim();
     } else if (person.includes('你')) {
-      you = content.replace(/\s+/g, '');
+      you = content.trim();
     }
   }
 
@@ -230,7 +230,7 @@ function parseShoppingCategory(
 ): ShoppingItem[] {
   const sub = extractSubsection(section, subsectionName);
   const rows = parseTableRows(sub);
-  return rows.map((row) => makeShoppingItem(category, row[0], row[1], row[2] || undefined));
+  return rows.map((row, i) => makeShoppingItem(category, i, row[0], row[1], row[2] || undefined));
 }
 
 function extractSubsection(section: string, name: string): string {
@@ -275,16 +275,17 @@ function parseVegetableCategory(section: string): ShoppingItem[] {
   }
 
   const items: ShoppingItem[] = [];
+  let counter = 0;
 
   const mainRows = parseTableRows(mainLines.join('\n'));
   for (const row of mainRows) {
-    items.push(makeShoppingItem('vegetable', row[0], row[1], row[2] || undefined));
+    items.push(makeShoppingItem('vegetable', counter++, row[0], row[1], row[2] || undefined));
   }
 
   const suggestedRows = parseTableRows(suggestedLines.join('\n'));
   for (const row of suggestedRows) {
     const note = row.length > 2 ? row[2]?.trim() || undefined : undefined;
-    items.push(makeShoppingItem('vegetable', row[0], row[1], note));
+    items.push(makeShoppingItem('vegetable', counter++, row[0], row[1], note));
   }
 
   return items;
@@ -296,6 +297,8 @@ function parseOilAndPantry(section: string): { oil: ShoppingItem[]; pantry: Shop
 
   const oil: ShoppingItem[] = [];
   const pantry: ShoppingItem[] = [];
+  let oilCounter = 0;
+  let pantryCounter = 0;
 
   for (const row of rows) {
     const name = row[0];
@@ -303,9 +306,9 @@ function parseOilAndPantry(section: string): { oil: ShoppingItem[]; pantry: Shop
     const note = row[2]?.trim() || undefined;
 
     if (amountStr.includes('适量')) {
-      pantry.push(makeShoppingItem('pantry', name, amountStr, note));
+      pantry.push(makeShoppingItem('pantry', pantryCounter++, name, amountStr, note));
     } else {
-      oil.push(makeShoppingItem('oil', name, amountStr, note));
+      oil.push(makeShoppingItem('oil', oilCounter++, name, amountStr, note));
     }
   }
 
@@ -314,13 +317,14 @@ function parseOilAndPantry(section: string): { oil: ShoppingItem[]; pantry: Shop
 
 function makeShoppingItem(
   category: string,
+  index: number,
   name: string,
   amountStr: string,
   note?: string
 ): ShoppingItem {
   const parsed = parseQuantity(amountStr);
   const item: ShoppingItem = {
-    id: `${category}:${name}`,
+    id: `${category}:${index}`,
     name,
     quantity: parsed.quantity,
     unit: parsed.unit,
